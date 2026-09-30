@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Status Report Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .file-upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upload-group.drag-over {
+            border-color: #3498db;
+            background: #f8f9fa;
+            transform: scale(1.02);
+        }
+
+        .upload-group:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .upload-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .upload-group .required {
+            color: #e74c3c;
+        }
+
+        .upload-group input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #f8f9fa;
+            transition: border-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-group input[type="file"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .drag-drop-area {
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .drag-drop-area:hover,
+        .drag-drop-area.drag-over {
+            border-color: #3498db;
+            background: #ebf5fb;
+        }
+
+        .drag-drop-area i {
+            font-size: 3em;
+            color: #3498db;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .drag-drop-text {
+            font-size: 1.1em;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .drag-drop-hint {
+            font-size: 0.9em;
+            color: #95a5a6;
+        }
+
+        .file-info {
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .filename-display {
+            margin-top: 10px;
+            padding: 12px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #2c3e50;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-size {
+            color: #7f8c8d;
+            font-size: 0.8em;
+        }
+
+        .remove-file {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background 0.3s ease;
+        }
+
+        .remove-file:hover {
+            background: #c0392b;
+        }
+
+        .output-section {
+            margin: 30px 0;
+        }
+
+        .output-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .output-section input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-generate:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-clear {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #7f8c8d;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .alert-error {
+            background: #ffeaa7;
+            border: 1px solid #fdcb6e;
+            color: #2d3436;
+        }
+
+        .alert-success {
+            background: #55efc4;
+            border: 1px solid #00b894;
+            color: #2d3436;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+        }
+
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            list-style-position: inside;
+            color: #5a6c7d;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .file-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #bdc3c7;
+        }
+
+        .status-indicator.ready {
+            background: #2ecc71;
+        }
+
+        .status-indicator.pending {
+            background: #f39c12;
+        }
+
+        .file-count {
+            background: #3498db;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.8em;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Product Status Report Generator</h1>
+            <p>Generate comprehensive product status reports with summary analytics</p>
+        </div>
+
+        <div class="content">
+            <form id="reportForm" enctype="multipart/form-data">
+                <div class="file-upload-section">
+                    <div class="upload-group" id="todayUploadGroup">
+                        <label for="today_file">Today's Raw File <span class="required">*</span></label>
+                        <input type="file" id="today_file" name="today_file" accept=".xlsx,.xls,.csv" required style="display: none;">
+                        <div class="drag-drop-area" id="todayDragArea">
+                            <i>📁</i>
+                            <div class="drag-drop-text">Drag & drop Today's file here or click to browse</div>
+                            <div class="drag-drop-hint">Supports: Excel (.xlsx, .xls) or CSV (.csv)</div>
+                        </div>
+                        <div class="file-info">Required: Must contain Handle, Title, ID, Vendor, Type, Tags, and Published columns</div>
+                        <div class="filename-display" id="today_filename" style="display: none;">
+                            <span id="today_file_name">No file selected</span>
+                            <span class="file-size" id="today_file_size"></span>
+                            <button type="button" class="remove-file" onclick="removeFile('today')">Remove</button>
+                        </div>
+                    </div>
+
+                    <div class="upload-group" id="yesterdayRawUploadGroup">
+                        <label for="yesterday_raw_file">Yesterday's Raw File <span class="required">*</span></label>
+                        <input type="file" id="yesterday_raw_file" name="yesterday_raw_file" accept=".xlsx,.xls,.csv" required style="display: none;">
+                        <div class="drag-drop-area" id="yesterdayRawDragArea">
+                            <i>📁</i>
+                            <div class="drag-drop-text">Drag & drop Yesterday's raw file here or click to browse</div>
+                            <div class="drag-drop-hint">Supports: Excel (.xlsx, .xls) or CSV (.csv)</div>
+                        </div>
+                        <div class="file-info">Required: Must contain Handle and Published columns</div>
+                        <div class="filename-display" id="yesterday_raw_filename" style="display: none;">
+                            <span id="yesterday_raw_file_name">No file selected</span>
+                            <span class="file-size" id="yesterday_raw_file_size"></span>
+                            <button type="button" class="remove-file" onclick="removeFile('yesterday_raw')">Remove</button>
+                        </div>
+                    </div>
+
+                    <div class="upload-group" id="yesterdayFinalUploadGroup">
+                        <label for="yesterday_final_file">Yesterday's Final Report (Optional)</label>
+                        <input type="file" id="yesterday_final_file" name="yesterday_final_file" accept=".xlsx,.xls" style="display: none;">
+                        <div class="drag-drop-area" id="yesterdayFinalDragArea">
+                            <i>📊</i>
+                            <div class="drag-drop-text">Drag & drop Yesterday's final report here or click to browse</div>
+                            <div class="drag-drop-hint">Supports: Excel files only (.xlsx, .xls)</div>
+                        </div>
+                        <div class="file-info">Optional: For including historical summary data</div>
+                        <div class="filename-display" id="yesterday_final_filename" style="display: none;">
+                            <span id="yesterday_final_file_name">No file selected</span>
+                            <span class="file-size" id="yesterday_final_file_size"></span>
+                            <button type="button" class="remove-file" onclick="removeFile('yesterday_final')">Remove</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="output-section">
+                    <label for="output_filename">Output Filename</label>
+                    <input type="text" id="output_filename" name="output_filename" value="product_status_report.xlsx" placeholder="Enter output filename">
+                </div>
+
+                <div class="alert alert-error" id="errorAlert"></div>
+                <div class="alert alert-success" id="successAlert"></div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Generating report... This may take a moment.</p>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-generate" id="generateBtn">Generate Report (Both Sheets)</button>
+                    <button type="button" class="btn btn-clear" onclick="clearForm()">Clear All</button>
+                </div>
+            </form>
+
+            <div class="instructions">
+                <h3>Instructions:</h3>
+                <ul>
+                    <li><strong>Today's Raw File:</strong> Current product export with Published status column</li>
+                    <li><strong>Yesterday's Raw File:</strong> Previous day's product export for comparison</li>
+                    <li><strong>Yesterday's Final Report:</strong> Optional - includes historical summary data</li>
+                    <li>The generated report will include both Product Status and Summary sheets</li>
+                    <li>Files are processed securely and never stored on the server</li>
+                    <li>You can drag and drop files or click to browse</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize drag and drop functionality
+        function initializeDragDrop(dragAreaId, fileInputId, filenameDisplayId) {
+            const dragArea = document.getElementById(dragAreaId);
+            const fileInput = document.getElementById(fileInputId);
+            const filenameDisplay = document.getElementById(filenameDisplayId);
+            const uploadGroup = dragArea.closest('.upload-group');
+
+            // Click to browse
+            dragArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // Drag and drop events
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dragArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dragArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dragArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                uploadGroup.classList.add('drag-over');
+            }
+
+            function unhighlight() {
+                uploadGroup.classList.remove('drag-over');
+            }
+
+            // Handle dropped files
+            dragArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    updateFileDisplay(fileInput, filenameDisplay);
+                }
+            }
+
+            // Handle file input change
+            fileInput.addEventListener('change', () => {
+                updateFileDisplay(fileInput, filenameDisplay);
+            });
+        }
+
+        // Update file display
+        function updateFileDisplay(fileInput, filenameDisplay) {
+            const file = fileInput.files[0];
+            if (file) {
+                const fileNameSpan = filenameDisplay.querySelector('span:first-child');
+                const fileSizeSpan = filenameDisplay.querySelector('.file-size');
+                
+                fileNameSpan.textContent = file.name;
+                fileSizeSpan.textContent = formatFileSize(file.size);
+                filenameDisplay.style.display = 'flex';
+                
+                // Update the hidden file input's display
+                const fileInputId = fileInput.id;
+                const displayElement = document.getElementById(fileInputId + '_filename');
+                if (displayElement) {
+                    displayElement.style.display = 'block';
+                }
+                
+                updateGenerateButton();
+            }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Remove file
+        function removeFile(type) {
+            const fileInput = document.getElementById(type + '_file');
+            const filenameDisplay = document.getElementById(type + '_filename');
+            const dragArea = document.getElementById(type + 'DragArea');
+            
+            fileInput.value = '';
+            filenameDisplay.style.display = 'none';
+            
+            // Reset the file input
+            fileInput.files = new DataTransfer().files;
+            
+            updateGenerateButton();
+        }
+
+        // Update generate button state
+        function updateGenerateButton() {
+            const todayFile = document.getElementById('today_file').files[0];
+            const yesterdayRawFile = document.getElementById('yesterday_raw_file').files[0];
+            const generateBtn = document.getElementById('generateBtn');
+            
+            generateBtn.disabled = !(todayFile && yesterdayRawFile);
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('reportForm').reset();
+            document.querySelectorAll('.filename-display').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('successAlert').style.display = 'none';
+            updateGenerateButton();
+        }
+
+        // Initialize all drag and drop areas
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDragDrop('todayDragArea', 'today_file', 'today_filename');
+            initializeDragDrop('yesterdayRawDragArea', 'yesterday_raw_file', 'yesterday_raw_filename');
+            initializeDragDrop('yesterdayFinalDragArea', 'yesterday_final_file', 'yesterday_final_filename');
+            
+            updateGenerateButton();
+        });
+
+        // Form submission
+        document.getElementById('reportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const loading = document.getElementById('loading');
+            const errorAlert = document.getElementById('errorAlert');
+            const successAlert = document.getElementById('successAlert');
+            const generateBtn = document.getElementById('generateBtn');
+
+            // Hide alerts and show loading
+            errorAlert.style.display = 'none';
+            successAlert.style.display = 'none';
+            loading.style.display = 'block';
+            generateBtn.disabled = true;
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Download the file
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = document.getElementById('output_filename').value || 'product_status_report.xlsx';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    
+                    successAlert.textContent = 'Report generated successfully!';
+                    successAlert.style.display = 'block';
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to generate report');
+                }
+            } catch (error) {
+                errorAlert.textContent = error.message;
+                errorAlert.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                generateBtn.disabled = false;
+                updateGenerateButton();
+            }
+        });
+
+        // Prevent drag and drop on entire document
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

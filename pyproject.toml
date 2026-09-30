@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+
+[project]
+name = "product-status-report"
+version = "1.0.0"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "Flask==2.3.3",
+    "pandas==2.0.3",
+    "openpyxl==3.1.2",
+    "Pillow==10.4.0",
+    "gunicorn==21.2.0",
+    "numpy==1.24.3",
+    "xlrd==2.0.1",
+    "python-dateutil==2.8.2",
+    "pytz==2023.3"
+]
